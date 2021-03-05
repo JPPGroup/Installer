@@ -14,6 +14,7 @@ namespace JPPInstaller
     class InstallManager
     {
         Dictionary<string, ReleaseStream> Streams { get; set; }
+        private List<string> branches;
         
         public ObservableCollection<HostInstall> Hosts { get; set; }
 
@@ -28,47 +29,16 @@ namespace JPPInstaller
             Streams.Add(stream.Name, stream);
         }
 
-        public async Task AddReleaseIfExists(string branchName)
+        internal void AddBranchNames(List<string> lists)
         {
-            string fullpath = $"refs/heads/{branchName}";
-
-            BlobContainerClient client =
-                new BlobContainerClient(new Uri("https://jppcdnstorage.blob.core.windows.net/ironstone"));
-
-            var result = client.GetBlobsAsync(prefix: fullpath);
-
-            long buildId = 0;
-            ReleaseStream rs = new ReleaseStream()
-            {
-                Name = branchName,
-                Class = ReleaseClass.Alpha
-            };
-            
-            await foreach (BlobItem blob in result)
-            {
-                if (blob.Name.EndsWith(".zip") && !blob.Deleted)
-                {
-                    /*string blobId = blob.Name.Substring(blob.Name.LastIndexOf("/"));
-                    blobId = Path.GetFileNameWithoutExtension(blobId);*/
-                    string blobId = Path.GetFileNameWithoutExtension(blob.Name);
-                    long foundId = long.Parse(blobId);
-
-                    if (foundId > buildId)
-                    {
-                        buildId = foundId;
-                        rs.BaseUrl = new Uri(client.Uri.AbsoluteUri + "/" + blob.Name);
-                        rs.ReleaseId = buildId;
-                    }
-                }
-            }
-            
-            Streams.Add(rs.Name, rs);
+            branches = lists;
         }
 
-        public void AddHost(HostInstall host)
+        public async Task AddHost(HostInstall host)
         {
             Hosts.Add(host);
             host.AddStreams(Streams.Values);
+            await host.AddBranches(branches);
         }
     }
 }
