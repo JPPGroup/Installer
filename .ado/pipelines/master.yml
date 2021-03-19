@@ -34,7 +34,7 @@ jobs:
   - task: VSBuild@1
     inputs:
       solution: 'JPPInstaller.sln'
-      platform: 'Any CPU'
+      platform: 'x64'
       configuration: 'Release'
       msbuildArgs: '/target:publish /p:OutputPath="$(Build.ArtifactStagingDirectory)\Publish\\" /p:PublishProfile="ClickOnceProfile.pubxml"'
       clean: true         
