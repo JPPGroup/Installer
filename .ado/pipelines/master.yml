@@ -36,7 +36,7 @@ jobs:
       solution: 'JPPInstaller.sln'
       platform: 'Any CPU'
       configuration: 'Release'
-      msbuildArgs: '/target:publish /p:InstallURL=https://jppcdnstorage.blob.core.windows.net/mail-assistant-beta/ /p:OutputPath="$(Build.ArtifactStagingDirectory)\Publish\\" /p:PublishProfile="ClickOnceProfile.pubxml"'
+      msbuildArgs: '/target:publish /p:OutputPath="$(Build.ArtifactStagingDirectory)\Publish\\" /p:PublishProfile="ClickOnceProfile.pubxml"'
       clean: true         
       
   - publish: $(Build.ArtifactStagingDirectory)
