@@ -22,6 +22,35 @@ namespace JPPInstaller
         {
             InitializeComponent();
             this.DataContext = model;
+
+            try
+            {
+                BitmapImage source = new BitmapImage();
+                source.BeginInit();
+                source.UriSource = new Uri($"pack://application:,,,/Assets/{model.Name}.jpg", UriKind.Absolute);
+                source.EndInit();
+
+                if (!model.HostInstalled)
+                {
+
+                    FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
+                    newFormatedBitmapSource.BeginInit();
+                    newFormatedBitmapSource.Source = source;
+                    newFormatedBitmapSource.DestinationFormat = PixelFormats.Gray32Float;
+                    newFormatedBitmapSource.EndInit();
+
+                    Banner.Source = newFormatedBitmapSource;
+                }
+                else
+                {
+                    Banner.Source = source;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
         }
     }
 }

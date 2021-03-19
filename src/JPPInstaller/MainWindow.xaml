@@ -5,8 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JPPInstaller"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <WrapPanel Margin="0" Name="Products">
-        
-        </WrapPanel>
+        Title="JPP Installer" Height="450" Width="600"
+        WindowStartupLocation="CenterScreen" 
+        WindowState="Maximized">
+    <ScrollViewer>
+        <StackPanel>
+            <Label FontFamily="Calibri" FontSize="24">Ironstone</Label>
+            <WrapPanel Margin="0" Name="Products"/>
+            <Label FontFamily="Calibri" FontSize="24">Cedar</Label>
+            <WrapPanel Margin="0" Name="RevitProducts"/>
+        </StackPanel>
+    </ScrollViewer>
 </Window>

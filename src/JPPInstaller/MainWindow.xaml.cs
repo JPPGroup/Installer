@@ -51,15 +51,14 @@ namespace JPPInstaller
         private async Task AddHosts()
         {
             await _manager.AddHost(new HostInstall("Autocad 2021", "Autodesk\\AutoCAD\\R24.0\\ACAD-4101"));
-            await _manager.AddHost(new HostInstall("Autocad 2020", "Autodesk\\AutoCAD\\R23.1\\ACAD-3001"));
-            await _manager.AddHost(new HostInstall("Autocad 2019", "Autodesk\\AutoCAD\\R23.0\\ACAD-2001"));
-            await _manager.AddHost(new HostInstall("Autocad 2018", "Autodesk\\AutoCAD\\R22.0\\ACAD-1001"));
-            await _manager.AddHost(new HostInstall("Autocad 2017", "Autodesk\\AutoCAD\\R21.0\\ACAD-0001"));
-            
             await _manager.AddHost(new HostInstall("Civil3D 2021", "Autodesk\\AutoCAD\\R24.0\\ACAD-4100"));
+            await _manager.AddHost(new HostInstall("Autocad 2020", "Autodesk\\AutoCAD\\R23.1\\ACAD-3001"));
             await _manager.AddHost(new HostInstall("Civil3D 2020", "Autodesk\\AutoCAD\\R23.1\\ACAD-3000"));
+            await _manager.AddHost(new HostInstall("Autocad 2019", "Autodesk\\AutoCAD\\R23.0\\ACAD-2001"));
             await _manager.AddHost(new HostInstall("Civil3D 2019", "Autodesk\\AutoCAD\\R23.0\\ACAD-2000"));
-            await _manager.AddHost(new HostInstall("Civil3D 2018", "Autodesk\\AutoCAD\\R22.0\\ACAD-1000"));
+            //await _manager.AddHost(new HostInstall("Autocad 2018", "Autodesk\\AutoCAD\\R22.0\\ACAD-1001"));
+            //await _manager.AddHost(new HostInstall("Autocad 2017", "Autodesk\\AutoCAD\\R21.0\\ACAD-0001"));
+            //await _manager.AddHost(new HostInstall("Civil3D 2018", "Autodesk\\AutoCAD\\R22.0\\ACAD-1000"));
         }
 
         private void DefaultStreams()
