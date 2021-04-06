@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Win32;
@@ -35,6 +32,20 @@ namespace JPPInstaller
             }
         }
 
+        public bool StreamInstalled
+        {
+            get
+            {
+                return _active != null;
+            }
+        }
+
+        public bool UpdateAvailable
+        {
+            get;
+            set;
+        }
+
         private ReleaseStream _active;
 
         public HostInstall(string name, string regKey)
@@ -44,14 +55,76 @@ namespace JPPInstaller
             RegKey = regKey;
             Streams = new List<ReleaseStream>();
             
-            CheckRegistry();
+            CheckRegistryForHostInstall();
         }
 
-        private void CheckRegistry()
+        /// <summary>
+        /// Scan the registry for an expected key indicating the host software is present and installed
+        /// </summary>
+        private void CheckRegistryForHostInstall()
         {
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"SOFTWARE\\{RegKey}"))
             {
                 HostInstalled = key != null;
+            }
+        }
+
+        internal void RemoveActive()
+        {
+            using (RegistryKey key =
+                Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications", true))
+            {
+                key.DeleteSubKeyTree("Ironstone");
+            }
+
+            _active = null;
+        }
+
+        /// <summary>
+        /// Add collection of streams to the application and determine if any are active
+        /// </summary>
+        /// <param name="values">Release streams to add</param>
+        internal void AddStreams(IEnumerable<ReleaseStream> values)
+        {
+            foreach (ReleaseStream releaseStream in values)
+            {
+                Streams.Add(releaseStream);
+                if (CheckRegistryForStream(releaseStream.Name))
+                {
+                    _active = releaseStream;
+                    CheckForUpdate();
+                }
+            }
+        }
+
+        private void CheckForUpdate()
+        {
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone"))
+            {
+                if (key == null)
+                {
+                    UpdateAvailable = false;
+                    return;
+                }
+
+                object value = key.GetValue("LOADER");
+                if (value == null)
+                {
+                    UpdateAvailable = false;
+                    return;
+                }
+
+                string currentVersion = GetVersionFromPath(_active.Name, (string) value);
+
+                long currentId = long.Parse(currentVersion);
+                if (currentId < _active.ReleaseId)
+                {
+                    UpdateAvailable = true;
+                }
+                else
+                {
+                    UpdateAvailable = false;
+                }
             }
         }
 
@@ -66,23 +139,12 @@ namespace JPPInstaller
                 if (value == null)
                     return false;
 
-                string regName = (string) value;
+                string regName = (string)value;
                 if (regName == stream)
                     return true;
-
             }
-            
+
             return false;
-        }
-
-        internal void AddStreams(IEnumerable<ReleaseStream> values)
-        {
-            foreach (ReleaseStream releaseStream in values)
-            {
-                Streams.Add(releaseStream);
-                if (CheckRegistryForStream(releaseStream.Name))
-                    _active = releaseStream;
-            }
         }
 
         private bool CheckStreamExists()
@@ -146,8 +208,6 @@ namespace JPPInstaller
             {
                 if (blob.Name.EndsWith(".zip") && !blob.Deleted)
                 {
-                    /*string blobId = blob.Name.Substring(blob.Name.LastIndexOf("/"));
-                    blobId = Path.GetFileNameWithoutExtension(blobId);*/
                     string blobId = Path.GetFileNameWithoutExtension(blob.Name);
                     long foundId = long.Parse(blobId);
 
@@ -192,6 +252,21 @@ namespace JPPInstaller
         private string BuildPath()
         {
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
+        }
+
+        private string GetVersionFromPath(string name, string path)
+        {
+            //return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
+            string[] steps = path.Split("\\");
+            for (int i = 0; i < steps.Length; i++)
+            {
+                if (steps[i].Equals(name))
+                {
+                    return steps[i + 1];
+                }
+            }
+
+            throw new InvalidOperationException();
         }
 
         public void SetActive()

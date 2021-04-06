@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <TextBlock Text="{Binding Name}"/>
         <Image Grid.Row="0" Width="256" Height="256" Name="Banner" />
@@ -27,7 +28,10 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <Button Width="128" Name="UpdateButton" IsEnabled="{Binding UpdateAvailable}">Update</Button>
+            <Button Width="128" Name="RemoveButton" IsEnabled="{Binding StreamInstalled}" Click="RemoveButton_OnClick">Remove</Button>
+        </StackPanel>
     </Grid>
 </UserControl>
 

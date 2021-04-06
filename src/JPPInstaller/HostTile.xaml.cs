@@ -18,9 +18,12 @@ namespace JPPInstaller
     /// </summary>
     public partial class HostTile : UserControl
     {
+        private HostInstall _model;
+        
         public HostTile(HostInstall model)
         {
             InitializeComponent();
+            _model = model;
             this.DataContext = model;
 
             try
@@ -51,6 +54,11 @@ namespace JPPInstaller
                 Console.WriteLine(e);
             }
             
+        }
+
+        private void RemoveButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            _model.RemoveActive();
         }
     }
 }
