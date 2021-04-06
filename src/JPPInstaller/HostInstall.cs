@@ -84,16 +84,12 @@ namespace JPPInstaller
         /// Add collection of streams to the application and determine if any are active
         /// </summary>
         /// <param name="values">Release streams to add</param>
-        internal void AddStreams(IEnumerable<ReleaseStream> values)
+        internal async Task AddStreams(IEnumerable<ReleaseStream> values)
         {
             foreach (ReleaseStream releaseStream in values)
             {
-                Streams.Add(releaseStream);
-                if (CheckRegistryForStream(releaseStream.Name))
-                {
-                    _active = releaseStream;
-                    CheckForUpdate();
-                }
+                //Streams.Add(releaseStream);
+                await AddReleaseIfExists(releaseStream.Name);
             }
         }
 
@@ -114,7 +110,7 @@ namespace JPPInstaller
                     return;
                 }
 
-                string currentVersion = GetVersionFromPath(_active.Name, (string) value);
+                string currentVersion = GetVersionFromPath((string) value);
 
                 long currentId = long.Parse(currentVersion);
                 if (currentId < _active.ReleaseId)
@@ -190,7 +186,20 @@ namespace JPPInstaller
         
         public async Task AddReleaseIfExists(string branchName)
         {
-            string fullpath = $"refs/heads/{branchName}";
+            string remoteName = branchName;
+            
+            //Handle "special names"
+            switch (branchName)
+            {
+                case "Nightly":
+                    remoteName = "master";
+                    break;
+
+                default:
+                    break;
+            }
+            
+            string fullpath = $"refs/heads/{remoteName}";
 
             BlobContainerClient client =
                 new BlobContainerClient(new Uri("https://jppcdnstorage.blob.core.windows.net/ironstone"));
@@ -254,17 +263,13 @@ namespace JPPInstaller
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
         }
 
-        private string GetVersionFromPath(string name, string path)
+        private string GetVersionFromPath(string path)
         {
             //return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
-            string[] steps = path.Split("\\");
-            for (int i = 0; i < steps.Length; i++)
-            {
-                if (steps[i].Equals(name))
-                {
-                    return steps[i + 1];
-                }
-            }
+            int location = path.IndexOf(Name) + Name.Length + 1;
+            string remainder = path.Substring(location);
+            string[] parts = remainder.Split("\\");
+            return parts[0];
 
             throw new InvalidOperationException();
         }
@@ -285,8 +290,30 @@ namespace JPPInstaller
                 if (releaseStream.Name.Equals(name))
                 {
                     _active = releaseStream;
+                    CheckForUpdate();
                 }
             }
+        }
+
+        public void UpdateActive()
+        {
+            Task.Run(async () => {
+                
+                string loadPath = BuildPath();
+                if (!File.Exists(loadPath))
+                {
+                    await DownloadActive();
+                }
+
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", true))
+                {
+                    key.SetValue("ReleaseStream", _active.Name);
+                    key.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord);
+                    key.SetValue("MANAGED", 1, RegistryValueKind.DWord);
+                    key.SetValue("LOADER", loadPath, RegistryValueKind.String);
+                    key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
+                }
+            });
         }
     }
 }

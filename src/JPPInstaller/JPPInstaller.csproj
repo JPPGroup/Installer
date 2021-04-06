@@ -19,4 +19,10 @@
     <Resource Include="Assets\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="jppicon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

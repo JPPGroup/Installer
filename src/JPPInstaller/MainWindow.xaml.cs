@@ -63,7 +63,7 @@ namespace JPPInstaller
 
         private void DefaultStreams()
         {
-            _manager.AddReleaseStream(new ReleaseStream()
+            /*_manager.AddReleaseStream(new ReleaseStream()
             {
                 Name = "Release",
                 Class = ReleaseClass.Release
@@ -72,12 +72,12 @@ namespace JPPInstaller
             {
                 Name = "Beta",
                 Class = ReleaseClass.Beta
-            });
+            });*/
             
             _manager.AddReleaseStream(new ReleaseStream()
             {
                 Name = "Nightly",
-                Class = ReleaseClass.Alpha
+                Class = ReleaseClass.Alpha,
             });
         }
         

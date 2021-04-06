@@ -37,7 +37,7 @@ namespace JPPInstaller
         public async Task AddHost(HostInstall host)
         {
             Hosts.Add(host);
-            host.AddStreams(Streams.Values);
+            await host.AddStreams(Streams.Values);
             await host.AddBranches(branches);
         }
     }

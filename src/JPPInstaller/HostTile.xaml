@@ -29,7 +29,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <Button Width="128" Name="UpdateButton" IsEnabled="{Binding UpdateAvailable}">Update</Button>
+            <Button Width="128" Name="UpdateButton" IsEnabled="{Binding UpdateAvailable}" Click="UpdateButton_OnClick">Update</Button>
             <Button Width="128" Name="RemoveButton" IsEnabled="{Binding StreamInstalled}" Click="RemoveButton_OnClick">Remove</Button>
         </StackPanel>
     </Grid>

@@ -60,5 +60,10 @@ namespace JPPInstaller
         {
             _model.RemoveActive();
         }
+
+        private void UpdateButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            _model.UpdateActive();
+        }
     }
 }
