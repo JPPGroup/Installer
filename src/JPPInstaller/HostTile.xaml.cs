@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -53,17 +54,25 @@ namespace JPPInstaller
             {
                 Console.WriteLine(e);
             }
-            
+
+            this._model.PropertyChanged += (sender, args) =>
+            {
+                if(args.PropertyName == nameof(HostInstall.Active) && _model.Active != null)
+                Xceed.Wpf.Toolkit.MessageBox.Show("Application installed", "", MessageBoxButton.OK, MessageBoxImage.Information);
+            };
+
         }
 
-        private void RemoveButton_OnClick(object sender, RoutedEventArgs e)
+        private async void RemoveButton_OnClick(object sender, RoutedEventArgs e)
         {
-            _model.RemoveActive();
+            await _model.RemoveActive();
+            Xceed.Wpf.Toolkit.MessageBox.Show("Application removed", "", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void UpdateButton_OnClick(object sender, RoutedEventArgs e)
+        private async void UpdateButton_OnClick(object sender, RoutedEventArgs e)
         {
-            _model.UpdateActive();
+            await _model.UpdateActive();
+            Xceed.Wpf.Toolkit.MessageBox.Show("Application updated", "", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

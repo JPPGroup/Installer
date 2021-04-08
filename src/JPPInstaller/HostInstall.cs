@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -10,7 +12,7 @@ using Microsoft.Win32;
 
 namespace JPPInstaller
 {
-    public class HostInstall
+    public class HostInstall : INotifyPropertyChanged
     {
         public string Name { get; set; }
         
@@ -22,6 +24,18 @@ namespace JPPInstaller
 
         public string HostVerison { get; set; }
         
+        public bool Busy
+        {
+            get { return _busy; }
+            set
+            {
+                _busy = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _busy;
+        
         public ReleaseStream Active
         {
             get { return _active; }
@@ -29,6 +43,8 @@ namespace JPPInstaller
             {
                 _active = value;
                 StreamChanged();
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(StreamInstalled));
             }
         }
 
@@ -69,7 +85,7 @@ namespace JPPInstaller
             }
         }
 
-        internal void RemoveActive()
+        internal async Task RemoveActive()
         {
             using (RegistryKey key =
                 Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications", true))
@@ -77,7 +93,7 @@ namespace JPPInstaller
                 key.DeleteSubKeyTree("Ironstone");
             }
 
-            _active = null;
+            Active = null;
         }
 
         /// <summary>
@@ -148,9 +164,13 @@ namespace JPPInstaller
             return false;
         }
         
-        private void StreamChanged()
+        private async Task StreamChanged()
         {
-            Task.Run(async () => { 
+            if (Active == null)
+                return;
+
+            Busy = true;
+
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone"))
             {
                 if (key == null)
@@ -173,7 +193,8 @@ namespace JPPInstaller
                 key.SetValue("LOADER", loadPath, RegistryValueKind.String);
                 key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
             }
-            });
+
+            Busy = false;
         }
 
         internal async Task AddBranches(List<string> branches)
@@ -295,25 +316,40 @@ namespace JPPInstaller
             }
         }
 
-        public void UpdateActive()
+        public async Task UpdateActive()
         {
-            Task.Run(async () => {
-                
-                string loadPath = BuildPath();
-                if (!File.Exists(loadPath))
-                {
-                    await DownloadActive();
-                }
+            Busy = true;
 
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", true))
-                {
-                    key.SetValue("ReleaseStream", _active.Name);
-                    key.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord);
-                    key.SetValue("MANAGED", 1, RegistryValueKind.DWord);
-                    key.SetValue("LOADER", loadPath, RegistryValueKind.String);
-                    key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
-                }
-            });
+            string loadPath = BuildPath();
+            if (!File.Exists(loadPath))
+            {
+                await DownloadActive();
+            }
+
+            using (RegistryKey key =
+                Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", true))
+            {
+                key.SetValue("ReleaseStream", _active.Name);
+                key.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord);
+                key.SetValue("MANAGED", 1, RegistryValueKind.DWord);
+                key.SetValue("LOADER", loadPath, RegistryValueKind.String);
+                key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
+            }
+
+            Busy = false;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // This method is called by the Set accessor of each property.
+        // The CallerMemberName attribute that is applied to the optional propertyName
+        // parameter causes the property name of the caller to be substituted as an argument.
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }

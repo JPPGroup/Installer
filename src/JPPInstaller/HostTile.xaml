@@ -11,7 +11,8 @@
              Height="286"
              Background="GhostWhite" Margin="10"
              IsEnabled="{Binding HostInstalled}">
-    <Grid>
+    <xctk:BusyIndicator IsBusy="{Binding Busy}" >
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
@@ -33,6 +34,7 @@
             <Button Width="128" Name="RemoveButton" IsEnabled="{Binding StreamInstalled}" Click="RemoveButton_OnClick">Remove</Button>
         </StackPanel>
     </Grid>
+    </xctk:BusyIndicator>
 </UserControl>
 
     
