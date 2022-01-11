@@ -1,17 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Octokit;
 
 namespace JPPInstaller
@@ -50,6 +40,8 @@ namespace JPPInstaller
 
         private async Task AddHosts()
         {
+            await _manager.AddHost(new HostInstall("Autocad 2022", "Autodesk\\AutoCAD\\R24.1\\ACAD-5101"));
+            await _manager.AddHost(new HostInstall("Civil3D 2022", "Autodesk\\AutoCAD\\R24.1\\ACAD-5100"));
             await _manager.AddHost(new HostInstall("Autocad 2021", "Autodesk\\AutoCAD\\R24.0\\ACAD-4101"));
             await _manager.AddHost(new HostInstall("Civil3D 2021", "Autodesk\\AutoCAD\\R24.0\\ACAD-4100"));
             await _manager.AddHost(new HostInstall("Autocad 2020", "Autodesk\\AutoCAD\\R23.1\\ACAD-3001"));
