@@ -12,7 +12,7 @@ using Microsoft.Win32;
 
 namespace JPPInstaller
 {
-    public class HostInstall : INotifyPropertyChanged
+    public abstract class HostInstall : INotifyPropertyChanged
     {
         public string Name { get; set; }
         
@@ -62,14 +62,19 @@ namespace JPPInstaller
             set;
         }
 
-        private ReleaseStream _active;
+        protected ReleaseStream _active;
 
-        public HostInstall(string name, string regKey)
+        public string ProductFamily { get; set; }
+
+        public bool Deprecated { get; set; }
+
+        public HostInstall(string name, string regKey, bool deprecated = false)
         {
             Name = name;
             HostVerison = name.Split(' ')[1];
             RegKey = regKey;
             Streams = new List<ReleaseStream>();
+            Deprecated = deprecated;
             
             CheckRegistryForHostInstall();
         }
@@ -85,16 +90,8 @@ namespace JPPInstaller
             }
         }
 
-        internal async Task RemoveActive()
-        {
-            using (RegistryKey key =
-                Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications", true))
-            {
-                key.DeleteSubKeyTree("Ironstone");
-            }
-
-            Active = null;
-        }
+        internal abstract Task RemoveActive();        
+        
 
         /// <summary>
         /// Add collection of streams to the application and determine if any are active
@@ -109,93 +106,16 @@ namespace JPPInstaller
             }
         }
 
-        private void CheckForUpdate()
-        {
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone"))
-            {
-                if (key == null)
-                {
-                    UpdateAvailable = false;
-                    return;
-                }
+        protected abstract void CheckForUpdate();
 
-                object value = key.GetValue("LOADER");
-                if (value == null)
-                {
-                    UpdateAvailable = false;
-                    return;
-                }
-
-                string currentVersion = GetVersionFromPath((string) value);
-
-                long currentId = long.Parse(currentVersion);
-                if (currentId < _active.ReleaseId)
-                {
-                    UpdateAvailable = true;
-                }
-                else
-                {
-                    UpdateAvailable = false;
-                }
-            }
-        }
-
-        private bool CheckRegistryForStream(string stream)
-        {
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone"))
-            {
-                if (key == null)
-                    return false;
-
-                object value = key.GetValue("ReleaseStream");
-                if (value == null)
-                    return false;
-
-                string regName = (string)value;
-                if (regName == stream)
-                    return true;
-            }
-
-            return false;
-        }
+        protected abstract bool CheckRegistryForStream(string stream);
 
         private bool CheckStreamExists()
         {
             return false;
         }
-        
-        private async Task StreamChanged()
-        {
-            if (Active == null)
-                return;
 
-            Busy = true;
-
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone"))
-            {
-                if (key == null)
-                {
-                    Registry.CurrentUser.CreateSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone");
-                }
-            }
-
-            string loadPath = BuildPath();
-            if (!File.Exists(loadPath))
-            {
-                await DownloadActive();
-            }
-
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", true))
-            {
-                key.SetValue("ReleaseStream", _active.Name);
-                key.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord);
-                key.SetValue("MANAGED", 1, RegistryValueKind.DWord);
-                key.SetValue("LOADER", loadPath, RegistryValueKind.String);
-                key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
-            }
-
-            Busy = false;
-        }
+        protected abstract Task StreamChanged();
 
         internal async Task AddBranches(List<string> branches)
         {
@@ -222,8 +142,11 @@ namespace JPPInstaller
             
             string fullpath = $"refs/heads/{remoteName}";
 
-            BlobContainerClient client =
-                new BlobContainerClient(new Uri("https://jppcdnstorage.blob.core.windows.net/ironstone"));
+            /*BlobContainerClient client =
+                new BlobContainerClient(new Uri($"https://jppcdnstorage.blob.core.windows.net/{ProductFamily}"));*/
+            string path = $"https://jppcdnstorage.blob.core.windows.net/{ProductFamily}";
+
+            BlobContainerClient client = new BlobContainerClient(new Uri(path)); 
 
             var result = client.GetBlobsAsync(prefix: $"{fullpath}/{HostVerison}");
 
@@ -256,95 +179,23 @@ namespace JPPInstaller
             }
         }
 
-        private async Task DownloadActive()
-        {
-            try
-            {
-                string dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}");
-                string destZip = Path.Combine(dest, $"{_active.ReleaseId}.zip");
-                string sourceUrl = $"{_active.BaseUrl}";
+        protected abstract Task DownloadActive();
+        
 
-                Directory.CreateDirectory(dest);
-                
-                WebClient client = new WebClient();
+        protected abstract string BuildPath();
 
-                await client.DownloadFileTaskAsync(sourceUrl, destZip);
-                ZipFile.ExtractToDirectory(destZip, $"{dest}\\{_active.ReleaseId}" );
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            
-        }
+        protected abstract string GetVersionFromPath(string path);
 
-        private string BuildPath()
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
-        }
+        public abstract void SetActive();
 
-        private string GetVersionFromPath(string path)
-        {
-            //return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), $"JPP\\Ironstone\\{Name}\\{_active.ReleaseId}\\IronstoneCore.dll");
-            int location = path.IndexOf(Name) + Name.Length + 1;
-            string remainder = path.Substring(location);
-            string[] parts = remainder.Split("\\");
-            return parts[0];
-
-            throw new InvalidOperationException();
-        }
-
-        public void SetActive()
-        {
-            string name;
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", false))
-            {
-                if (key == null)
-                    return;
-                
-                name = (string)key.GetValue("ReleaseStream");
-            }
-
-            foreach (ReleaseStream releaseStream in Streams)
-            {
-                if (releaseStream.Name.Equals(name))
-                {
-                    _active = releaseStream;
-                    CheckForUpdate();
-                }
-            }
-        }
-
-        public async Task UpdateActive()
-        {
-            Busy = true;
-
-            string loadPath = BuildPath();
-            if (!File.Exists(loadPath))
-            {
-                await DownloadActive();
-            }
-
-            using (RegistryKey key =
-                Registry.CurrentUser.OpenSubKey($"SOFTWARE\\{RegKey}\\Applications\\Ironstone", true))
-            {
-                key.SetValue("ReleaseStream", _active.Name);
-                key.SetValue("LOADCTRLS", 2, RegistryValueKind.DWord);
-                key.SetValue("MANAGED", 1, RegistryValueKind.DWord);
-                key.SetValue("LOADER", loadPath, RegistryValueKind.String);
-                key.SetValue("DESCRIPTION", "JPP Ironstone", RegistryValueKind.String);
-            }
-
-            Busy = false;
-        }
+        public abstract Task UpdateActive();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         // This method is called by the Set accessor of each property.
         // The CallerMemberName attribute that is applied to the optional propertyName
         // parameter causes the property name of the caller to be substituted as an argument.
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        protected void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             if (PropertyChanged != null)
             {
