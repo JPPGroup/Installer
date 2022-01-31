@@ -99,7 +99,8 @@ namespace JPPInstaller
 
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey($"SOFTWARE\\JPP Consulting\\Cedar\\{HostVerison}", true))
             {
-                key.SetValue("ReleaseStream", _active.Name);                
+                key.SetValue("ReleaseStream", _active.Name);
+                key.SetValue("VERSION", _active.ReleaseId);
             }
 
             Busy = false;
@@ -178,6 +179,7 @@ namespace JPPInstaller
                 Registry.CurrentUser.OpenSubKey($"SOFTWARE\\JPP Consulting\\Cedar\\{HostVerison}", true))
             {
                 key.SetValue("ReleaseStream", _active.Name);
+                key.SetValue("VERSION", _active.ReleaseId);
             }
 
             Busy = false;
