@@ -15,7 +15,9 @@ namespace JPPInstaller
     {
         Dictionary<string, ReleaseStream> Streams { get; set; }
         private List<string> branches;
-        
+
+        private List<string> locales;
+
         public ObservableCollection<HostInstall> Hosts { get; set; }
 
         public InstallManager()
@@ -34,11 +36,18 @@ namespace JPPInstaller
             branches = lists;
         }
 
+        internal void AddLocales(List<string> supportedLocales)
+        {
+            locales = supportedLocales;
+        }
+
         public async Task AddHost(HostInstall host)
         {
-            Hosts.Add(host);
+            host.AddLocales(locales);
+            Hosts.Add(host);            
             await host.AddStreams(Streams.Values);
             await host.AddBranches(branches);
+            host.CheckRegistryForHostInstall();
         }
     }
 }

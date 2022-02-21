@@ -49,6 +49,8 @@ namespace JPPInstaller
 
         private async Task AddHosts()
         {
+            _manager.AddLocales(new List<string>() { "", ":809" });
+
             List<Task> tasks = new List<Task>();
             tasks.Add(_manager.AddHost(new AutocadHostInstall("Autocad 2022", "Autodesk\\AutoCAD\\R24.1\\ACAD-5101")));
             tasks.Add(_manager.AddHost(new AutocadHostInstall("Civil3D 2022", "Autodesk\\AutoCAD\\R24.1\\ACAD-5100")));
@@ -62,10 +64,12 @@ namespace JPPInstaller
             //await _manager.AddHost(new HostInstall("Autocad 2017", "Autodesk\\AutoCAD\\R21.0\\ACAD-0001"));
             //await _manager.AddHost(new HostInstall("Civil3D 2018", "Autodesk\\AutoCAD\\R22.0\\ACAD-1000"));
 
-            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2022", "Autodesk\\Revit\\2022\\REVIT-05:0809")));
-            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2021", "Autodesk\\Revit\\2021\\REVIT-05:0809")));
-            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2020", "Autodesk\\Revit\\2020\\REVIT-05:0809")));
-            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2019", "Autodesk\\Revit\\2019\\REVIT-05:0809", true)));
+            _revitManager.AddLocales(new List<string>() { ":0809", ":0409" });
+
+            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2022", "Autodesk\\Revit\\2022\\REVIT-05")));
+            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2021", "Autodesk\\Revit\\2021\\REVIT-05")));
+            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2020", "Autodesk\\Revit\\2020\\REVIT-05")));
+            tasks.Add(_revitManager.AddHost(new RevitHostInstall("Revit 2019", "Autodesk\\Revit\\2019\\REVIT-05", true)));
 
             await Task.WhenAll(tasks);
         }
