@@ -28,7 +28,16 @@ namespace JPPInstaller
 
             Active = null;
         }
-                
+
+        protected override bool CheckProductInstalled(RegistryKey key)
+        {
+            if (!base.CheckProductInstalled(key))
+                return false;
+
+
+            return key.GetValue("InstallationLocation") != null;
+        }
+
 
         protected override void CheckForUpdate()
         {

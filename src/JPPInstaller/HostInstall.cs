@@ -22,6 +22,8 @@ namespace JPPInstaller
         
         public List<ReleaseStream> Streams { get; set; }
 
+        public List<string> Locales { get; set; }
+
         public string HostVerison { get; set; }
         
         public bool Busy
@@ -46,6 +48,11 @@ namespace JPPInstaller
                 NotifyPropertyChanged();
                 NotifyPropertyChanged(nameof(StreamInstalled));
             }
+        }
+
+        internal void AddLocales(List<string> locales)
+        {
+            Locales = locales;
         }
 
         public bool StreamInstalled
@@ -74,20 +81,28 @@ namespace JPPInstaller
             HostVerison = name.Split(' ')[1];
             RegKey = regKey;
             Streams = new List<ReleaseStream>();
-            Deprecated = deprecated;
-            
-            CheckRegistryForHostInstall();
+            Deprecated = deprecated;            
         }
 
         /// <summary>
         /// Scan the registry for an expected key indicating the host software is present and installed
         /// </summary>
-        private void CheckRegistryForHostInstall()
+        public void CheckRegistryForHostInstall()
         {
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"SOFTWARE\\{RegKey}"))
+            foreach (string locale in Locales)
             {
-                HostInstalled = key != null;
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"SOFTWARE\\{RegKey}{locale}"))
+                {
+                    HostInstalled = CheckProductInstalled(key);
+                    if(HostInstalled)
+                        break;
+                }
             }
+        }
+
+        protected virtual bool CheckProductInstalled(RegistryKey key)
+        {
+            return key != null;
         }
 
         internal abstract Task RemoveActive();        
