@@ -13,27 +13,29 @@
              IsEnabled="{Binding HostInstalled}">
     <xctk:BusyIndicator IsBusy="{Binding Busy}" >
         <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
-        </Grid.RowDefinitions>
-        <TextBlock Text="{Binding Name}"/>
-        <Image Grid.Row="0" Width="256" Height="256" Name="Banner" />
-        <ComboBox Grid.Row="1" ItemsSource="{Binding Streams}" SelectedItem="{Binding Active}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
-        <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <Button Width="128" Name="UpdateButton" IsEnabled="{Binding UpdateAvailable}" Click="UpdateButton_OnClick">Update</Button>
-            <Button Width="128" Name="RemoveButton" IsEnabled="{Binding StreamInstalled}" Click="RemoveButton_OnClick">Remove</Button>
-        </StackPanel>
-    </Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="{Binding Name}"/>
+            <Image Grid.Row="0" Width="256" Height="256" Name="Banner" />
+            <ComboBox Grid.Row="1" ItemsSource="{Binding Streams}" SelectedItem="{Binding Active}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <StackPanel Orientation="Horizontal" Grid.Row="2">
+                <Button Width="128" Name="UpdateButton" IsEnabled="{Binding UpdateAvailable}" Click="UpdateButton_OnClick">Update</Button>
+                <Button Width="128" Name="RemoveButton" IsEnabled="{Binding StreamInstalled}" Click="RemoveButton_OnClick">Remove</Button>
+            </StackPanel>
+            <Label x:Name="DepWarning" Content="Deprecated - Out of Support" HorizontalAlignment="Left" Margin="0,175,0,0" VerticalAlignment="Top" Width="256" FontWeight="Bold" FontSize="16" Background="White" Foreground="#FF8C1212" Visibility="Hidden"/>
+            <Label x:Name="ExperimentalWarning" Content="Experimental - Unupported" HorizontalAlignment="Left" Margin="0,175,0,0" VerticalAlignment="Top" Width="256" FontWeight="Bold" FontSize="16" Background="White" Foreground="#FF8C1212" Visibility="Hidden"/>
+        </Grid>
     </xctk:BusyIndicator>
 </UserControl>
 

@@ -74,14 +74,16 @@ namespace JPPInstaller
         public string ProductFamily { get; set; }
 
         public bool Deprecated { get; set; }
+        public bool Experimental { get; set; }
 
-        public HostInstall(string name, string regKey, bool deprecated = false)
+        public HostInstall(string name, string regKey, bool deprecated = false, bool experimental = false)
         {
             Name = name;
             HostVerison = name.Split(' ')[1];
             RegKey = regKey;
             Streams = new List<ReleaseStream>();
             Deprecated = deprecated;            
+            Experimental = experimental;
         }
 
         /// <summary>

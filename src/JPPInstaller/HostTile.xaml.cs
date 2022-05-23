@@ -49,6 +49,15 @@ namespace JPPInstaller
                 {
                     Banner.Source = source;
                 }
+
+                if(model.Deprecated)
+                {
+                    DepWarning.Visibility = Visibility.Visible;
+                }
+                if (model.Experimental)
+                {
+                    ExperimentalWarning.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception e)
             {
