@@ -10,7 +10,7 @@ namespace JPPInstaller
     public class RevitHostInstall : HostInstall
     {       
 
-        public RevitHostInstall(string name, string regKey, bool deprecated = false) : base(name, regKey, deprecated)
+        public RevitHostInstall(string name, string regKey, bool deprecated = false, bool experimental = false) : base(name, regKey, deprecated, experimental)
         {
             ProductFamily = "cedar";
         }
